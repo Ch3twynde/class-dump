@@ -117,7 +117,7 @@ static BOOL debugAnonStructures = NO;
         _phase3_exceptionalNames = [[NSMutableSet alloc] init];
         _phase3_inMethodNameExceptions = [[NSMutableSet alloc] init];
         
-        _shouldDebug = NO;
+        _shouldDebug = YES;
         
         _debugNames = [[NSMutableSet alloc] init];
         _debugAnon = [[NSMutableSet alloc] init];

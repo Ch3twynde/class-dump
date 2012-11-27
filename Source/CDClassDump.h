@@ -15,6 +15,14 @@
 #define CLASS_DUMP_VERSION CLASS_DUMP_BASE_VERSION
 #endif
 
+#define LOG_NOW defined(DEBUG)
+#if LOG_NOW
+#define Log(fmt, ...) NSLog(( fmt ), ##__VA_ARGS__)
+#else
+#define Log(fmt, ...)
+#endif
+
+
 @class CDFile, CDMachOFile;
 @class CDTypeController;
 @class CDVisitor;

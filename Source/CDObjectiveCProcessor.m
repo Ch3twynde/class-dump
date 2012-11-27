@@ -17,6 +17,7 @@
 #import "CDOCCategory.h"
 #import "CDSection.h"
 
+
 // Note: sizeof(long long) == 8 on both 32-bit and 64-bit.  sizeof(uint64_t) == 8.  So use [NSNumber numberWithUnsignedLongLong:].
 
 @implementation CDObjectiveCProcessor
@@ -79,12 +80,13 @@
         
         [cursor readInt32];
         uint32_t v2 = [cursor readInt32];
-        //NSLog(@"%s: %08x %08x", __cmd, v1, v2);
-        // v2 == 0 -> Objective-C Garbage Collection: Unsupported
-        // v2 == 2 -> Supported
-        // v2 == 6 -> Required
-        //NSParameterAssert(v2 == 0 || v2 == 2 || v2 == 6);
         
+//        Log(@"%s: %08x %08x", __cmd, v1, v2);
+//        v2 == 0 -> Objective-C Garbage Collection: Unsupported
+//        v2 == 2 -> Supported
+//        v2 == 6 -> Required
+//        NSParameterAssert(v2 == 0 || v2 == 2 || v2 == 6);
+
         // See markgc.c in the objc4 project
         switch (v2 & 0x06) {
             case 0: return @"Unsupported";
@@ -226,6 +228,13 @@
     for (NSNumber *key in [[_protocolsByAddress allKeys] sortedArrayUsingSelector:@selector(compare:)]) {
         CDOCProtocol *p1 = _protocolsByAddress[key];
         CDOCProtocol *p2 = _protocolsByName[p1.name];
+        
+#ifdef DEBUG
+        if ( [p1.name isEqualToString:@"NSObject"] ) {
+            Log(@"STOP");
+        }
+#endif
+
         if (p2 == nil) {
             p2 = [[CDOCProtocol alloc] init];
             [p2 setName:[p1 name]];
@@ -235,12 +244,14 @@
         }
     }
 
-    //NSLog(@"uniqued protocol names: %@", [[[protocolsByName allKeys] sortedArrayUsingSelector:@selector(compare:)] componentsJoinedByString:@", "]);
+    Log(@"uniqued protocol names: %@", [[[_protocolsByName allKeys] sortedArrayUsingSelector:@selector(compare:)] componentsJoinedByString:@", "]);
 
     // And finally fill in adopted protocols, instance and class methods.  And properties.
     for (NSNumber *key in [[_protocolsByAddress allKeys] sortedArrayUsingSelector:@selector(compare:)]) {
+        
         CDOCProtocol *p1 = _protocolsByAddress[key];
         CDOCProtocol *uniqueProtocol = _protocolsByName[p1.name];
+                
         for (CDOCProtocol *p2 in [p1 protocols])
             [uniqueProtocol addProtocol:_protocolsByName[p2.name]];
 
@@ -256,11 +267,11 @@
                 [uniqueProtocol addInstanceMethod:method];
         } else {
             if (!([[p1 instanceMethods] count] == 0 || [[uniqueProtocol instanceMethods] count] == [[p1 instanceMethods] count])) {
-                //NSLog(@"p1 name: %@, uniqueProtocol name: %@", [p1 name], [uniqueProtocol name]);
-                //NSLog(@"p1 instanceMethods: %@", [p1 instanceMethods]);
-                //NSLog(@"uniqueProtocol instanceMethods: %@", [uniqueProtocol instanceMethods]);
+                Log(@"p1 name: %@, uniqueProtocol name: %@", [p1 name], [uniqueProtocol name]);
+                Log(@"p1 instanceMethods: %@", [p1 instanceMethods]);
+                Log(@"uniqueProtocol instanceMethods: %@", [uniqueProtocol instanceMethods]);
             }
-            NSParameterAssert([[p1 instanceMethods] count] == 0 || [[uniqueProtocol instanceMethods] count] == [[p1 instanceMethods] count]);
+//            NSParameterAssert( [[p1 instanceMethods] count] == 0 || [[uniqueProtocol instanceMethods] count] == [[p1 instanceMethods] count] );
         }
 
         if ([[uniqueProtocol optionalClassMethods] count] == 0) {
@@ -284,8 +295,7 @@
             NSParameterAssert([[p1 properties] count] == 0 || [[uniqueProtocol properties] count] == [[p1 properties] count]);
         }
     }
-
-    //NSLog(@"protocolsByName: %@", protocolsByName);
+    Log(@"protocolsByName: %@", _protocolsByName);
 }
 
 @end
